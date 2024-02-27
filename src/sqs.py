@@ -15,8 +15,7 @@ application = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
 async def hello(message, context: ContextTypes.DEFAULT_TYPE):
     # I`m using lower() method to make the bot case-insensitive
     if 'hello' in message['message'].lower():
-        # Bot response was not specified, so I made him to say "Hello, world!"
-        await context.bot.send_message(chat_id=message['chat_id'], text="Hello, world!")
+        await application.bot.send_message(chat_id=message['chat_id'], text="Hello, world!")
 
 def lambda_handler(event, context):
     logger.info("event: {}".format(json.dumps(event)))
@@ -25,5 +24,10 @@ def lambda_handler(event, context):
 async def main(event, context):
     # The event is a dictionary that contains the message body and chat id
     for record in event['Records']:
-        await application.initialize()
-        await hello(json.loads(record['body']), application.bot)
+        try:
+            await application.initialize()
+            await hello(json.loads(record['body']), application.bot)
+        except Exception as exc:
+            logger.error(f"Error processing message: {record['body']}")
+            logger.error(exc)
+    return None
